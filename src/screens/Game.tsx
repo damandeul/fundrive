@@ -7,6 +7,23 @@ function randPlate(): number[] {
   return Array.from({ length: 4 }, () => Math.floor(Math.random() * 10))
 }
 
+/* 한국 번호판 스타일 */
+function Plate({ digits, state }: { digits: string; state?: 'correct' | 'wrong' | null }) {
+  return (
+    <div
+      className={`relative mx-auto w-fit rounded-[10px] border-[3px] bg-white px-6 py-3 shadow-[0_4px_12px_rgba(15,23,42,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors ${
+        state === 'correct' ? 'border-emerald-400' : state === 'wrong' ? 'border-rose-400' : 'border-slate-800'
+      }`}
+      style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)' }}
+    >
+      <span className="absolute left-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300 shadow-inner" />
+      <span className="absolute right-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300 shadow-inner" />
+      <span className="mr-2 align-middle text-[15px] font-bold text-slate-600">12가</span>
+      <span className="align-middle text-[34px] font-black tracking-[0.12em] text-slate-900 tabular-nums">{digits}</span>
+    </div>
+  )
+}
+
 export default function Game() {
   const app = useApp()
   const [tab, setTab] = useState<GameTab>('math')
@@ -18,19 +35,25 @@ export default function Game() {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="rounded-2xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-xs text-indigo-700 leading-relaxed">
-        🧑‍🤝‍🧑 <b>동승자 모드</b> — 게임은 동승자나 정차 중에만 즐겨주세요. 운전자는 눈은 도로에, 답은 입으로!
+    <div className="space-y-4 p-4">
+      <div className="flex items-center gap-3 rounded-3xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-sky-50 px-5 py-4">
+        <span className="text-2xl">🧑‍🤝‍🧑</span>
+        <p className="text-[12px] font-medium leading-relaxed text-indigo-600">
+          <b className="font-extrabold">동승자 모드</b> — 게임은 동승자나 정차 중에만!<br />
+          운전자는 눈은 도로에, 답은 입으로 🗣️
+        </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
-        {([['math', '🧮 암산'], ['bingo', '🎱 빙고'], ['predict', '🔮 예언']] as [GameTab, string][]).map(([t, label]) => (
+      <div className="grid grid-cols-3 gap-1.5 rounded-2xl bg-slate-200/60 p-1.5">
+        {([['math', '🧮', '암산'], ['bingo', '🎱', '빙고'], ['predict', '🔮', '예언']] as [GameTab, string, string][]).map(([t, icon, label]) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`rounded-xl py-2.5 text-sm font-bold transition ${tab === t ? 'bg-indigo-500 text-white shadow' : 'bg-white text-slate-500 border border-slate-200'}`}
+            className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[13.5px] font-extrabold transition-all ${
+              tab === t ? 'bg-white text-slate-900 shadow-md' : 'text-slate-400'
+            }`}
           >
-            {label}
+            <span>{icon}</span>{label}
           </button>
         ))}
       </div>
@@ -40,7 +63,7 @@ export default function Game() {
       {tab === 'predict' && <PredictGame onToast={showToast} />}
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-full bg-slate-900 text-white text-sm font-semibold px-5 py-2.5 animate-pop whitespace-nowrap">
+        <div className="fixed bottom-28 left-1/2 z-50 -translate-x-1/2 animate-pop whitespace-nowrap rounded-full bg-slate-900/95 px-5 py-3 text-[13.5px] font-bold text-white shadow-2xl backdrop-blur">
           {toast}
         </div>
       )}
@@ -48,7 +71,7 @@ export default function Game() {
   )
 }
 
-/* ---------- 암산 게임: 앞차 번호판 숫자 합 맞히기 ---------- */
+/* ---------- 암산 게임 ---------- */
 function MathGame({ onToast }: { onToast: (m: string) => void }) {
   const [plate, setPlate] = useState(randPlate)
   const [choices, setChoices] = useState<number[]>(() => makeChoices(plate))
@@ -90,35 +113,37 @@ function MathGame({ onToast }: { onToast: (m: string) => void }) {
   }
 
   return (
-    <div className="rounded-3xl bg-white shadow-sm border border-slate-100 p-5 space-y-4">
+    <div className="card animate-slide-up space-y-5 p-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-slate-800">번호판 숫자 합 맞히기</h2>
-        <span className="text-xs font-bold text-indigo-500">🔥 {combo}콤보</span>
+        <div>
+          <h2 className="text-[17px] font-extrabold tracking-tight text-slate-900">번호판 숫자 합 맞히기</h2>
+          <p className="mt-0.5 text-[12.5px] text-slate-400">앞차 번호판, 네 숫자의 합은?</p>
+        </div>
+        <span className={`rounded-full px-3 py-1.5 text-[12px] font-extrabold ${combo > 0 ? 'grad-sunset text-white shadow-lg shadow-orange-500/25' : 'bg-slate-100 text-slate-400'}`}>
+          🔥 {combo}콤보
+        </span>
       </div>
-      <p className="text-sm text-slate-500">앞차 번호판이에요! 네 숫자의 합은?</p>
-      {/* 번호판 */}
-      <div className={`mx-auto w-fit rounded-lg border-4 px-5 py-2.5 bg-white transition ${result === 'correct' ? 'border-emerald-400' : result === 'wrong' ? 'border-rose-400' : 'border-slate-800'}`}>
-        <span className="text-sm text-slate-500 font-bold mr-2">12가</span>
-        <span className="text-3xl font-black tracking-widest tabular-nums">{plate.join('')}</span>
-      </div>
+
+      <Plate digits={plate.join('')} state={result} />
+
       <div className="grid grid-cols-4 gap-2">
         {choices.map((c) => (
           <button
             key={c}
             onClick={() => answer(c)}
             disabled={result !== null}
-            className="rounded-xl bg-indigo-50 active:bg-indigo-500 active:text-white text-indigo-700 font-bold py-3.5 text-lg transition disabled:opacity-50"
+            className="rounded-2xl border border-indigo-100 bg-indigo-50/60 py-4 text-[19px] font-extrabold text-indigo-600 transition active:scale-95 active:bg-indigo-500 active:text-white disabled:opacity-40"
           >
             {c}
           </button>
         ))}
       </div>
-      <p className="text-xs text-slate-400">💡 실제로 운전할 땐 동승자가 문제를 내고 운전자가 말로 답해요!</p>
+      <p className="text-center text-[11.5px] text-slate-300">💡 실제 운전 중엔 동승자가 문제를 내고 운전자가 말로 답해요</p>
     </div>
   )
 }
 
-/* ---------- 빙고: 실제 본 번호판 숫자로 0~9 컬렉션 ---------- */
+/* ---------- 빙고 ---------- */
 function BingoGame({ onToast, bingo, bingoCount }: { onToast: (m: string) => void; bingo: number[]; bingoCount: number }) {
   const [input, setInput] = useState('')
 
@@ -140,22 +165,33 @@ function BingoGame({ onToast, bingo, bingoCount }: { onToast: (m: string) => voi
   }
 
   return (
-    <div className="rounded-3xl bg-white shadow-sm border border-slate-100 p-5 space-y-4">
+    <div className="card animate-slide-up space-y-5 p-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-slate-800">번호판 숫자 빙고</h2>
-        <span className="text-xs font-bold text-indigo-500">완성 {bingoCount}회</span>
+        <div>
+          <h2 className="text-[17px] font-extrabold tracking-tight text-slate-900">번호판 숫자 빙고</h2>
+          <p className="mt-0.5 text-[12.5px] text-slate-400">0~9를 모두 모으면 +50P</p>
+        </div>
+        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[12px] font-extrabold text-slate-500">완성 {bingoCount}회</span>
       </div>
-      <p className="text-sm text-slate-500">오늘 본 번호판 숫자를 입력해서 0~9를 모두 모으면 빙고! (+50P)</p>
-      <div className="grid grid-cols-5 gap-1.5">
-        {Array.from({ length: 10 }, (_, i) => (
-          <div
-            key={i}
-            className={`rounded-xl py-3 text-center text-lg font-black transition ${bingo.includes(i) ? 'bg-indigo-500 text-white shadow' : 'bg-slate-100 text-slate-300'}`}
-          >
-            {i}
-          </div>
-        ))}
+
+      <div className="grid grid-cols-5 gap-2">
+        {Array.from({ length: 10 }, (_, i) => {
+          const owned = bingo.includes(i)
+          return (
+            <div
+              key={i}
+              className={`flex aspect-square items-center justify-center rounded-2xl text-[20px] font-black transition-all ${
+                owned
+                  ? 'grad-brand scale-100 text-white shadow-lg shadow-indigo-500/30'
+                  : 'border border-dashed border-slate-200 bg-slate-50 text-slate-200'
+              }`}
+            >
+              {i}
+            </div>
+          )
+        })}
       </div>
+
       <div className="flex gap-2">
         <input
           value={input}
@@ -163,9 +199,11 @@ function BingoGame({ onToast, bingo, bingoCount }: { onToast: (m: string) => voi
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           inputMode="numeric"
           placeholder="본 번호판 숫자 (예: 3971)"
-          className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:border-indigo-400"
+          className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-[14px] font-semibold transition focus:border-indigo-400 focus:bg-white focus:outline-none"
         />
-        <button onClick={submit} className="rounded-xl bg-indigo-500 text-white font-bold px-5">수집</button>
+        <button onClick={submit} className="grad-brand rounded-2xl px-6 text-[14px] font-extrabold text-white shadow-lg shadow-indigo-500/25 transition active:scale-95">
+          수집
+        </button>
       </div>
     </div>
   )
@@ -194,40 +232,51 @@ function PredictGame({ onToast }: { onToast: (m: string) => void }) {
   }
 
   return (
-    <div className="rounded-3xl bg-white shadow-sm border border-slate-100 p-5 space-y-4">
-      <h2 className="font-bold text-slate-800">번호판 숫자 예언</h2>
-      <p className="text-sm text-slate-500">
-        "다음 번호판엔 <b>이 숫자</b>가 있다!" — 숫자를 고르고, 다음에 본 번호판을 입력하세요. 적중 시 +15P
-      </p>
-      <div className="grid grid-cols-5 gap-1.5">
+    <div className="card animate-slide-up space-y-5 p-6">
+      <div>
+        <h2 className="text-[17px] font-extrabold tracking-tight text-slate-900">번호판 숫자 예언</h2>
+        <p className="mt-0.5 text-[12.5px] leading-relaxed text-slate-400">
+          숫자를 고르고, 다음에 본 번호판을 입력하세요. 적중 시 +15P
+        </p>
+      </div>
+
+      <div className="grid grid-cols-5 gap-2">
         {Array.from({ length: 10 }, (_, i) => (
           <button
             key={i}
             onClick={() => setPicked(i)}
-            className={`rounded-xl py-3 text-lg font-black transition ${picked === i ? 'bg-violet-500 text-white shadow animate-pop' : 'bg-slate-100 text-slate-500'}`}
+            className={`flex aspect-square items-center justify-center rounded-2xl text-[20px] font-black transition-all ${
+              picked === i
+                ? 'animate-pop bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30'
+                : 'bg-slate-100 text-slate-400 active:bg-slate-200'
+            }`}
           >
             {i}
           </button>
         ))}
       </div>
+
       {picked !== null && (
-        <div className="flex gap-2 animate-pop">
+        <div className="flex animate-pop gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && check()}
             inputMode="numeric"
             placeholder={`다음 번호판에 ${picked}이(가) 있을까요?`}
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:border-violet-400"
+            className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-[14px] font-semibold transition focus:border-violet-400 focus:bg-white focus:outline-none"
           />
-          <button onClick={check} className="rounded-xl bg-violet-500 text-white font-bold px-5">확인</button>
+          <button onClick={check} className="rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 px-6 text-[14px] font-extrabold text-white shadow-lg shadow-violet-500/25 transition active:scale-95">
+            확인
+          </button>
         </div>
       )}
+
       {history.length > 0 && (
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex flex-wrap gap-1.5">
           {history.map((h, i) => (
-            <span key={i} className={`rounded-full px-3 py-1 text-xs font-bold ${h.hit ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
-              {h.digit} {h.hit ? '적중' : '실패'}
+            <span key={i} className={`rounded-full px-3 py-1.5 text-[11.5px] font-extrabold ${h.hit ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-300'}`}>
+              {h.digit} {h.hit ? '적중 ✓' : '실패'}
             </span>
           ))}
         </div>
